@@ -10,6 +10,20 @@ from tkinter import *
 import webbrowser
 import alpaca_trade_api as alpaca
 from tkinter import font
+from tkmacosx import Button
+import yfinance as yf
+import requests
+import bs4 as bs
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from datetime import datetime as dt
+from tkinter import ttk
+
+
+
+
+
     
 class Sign_In_Page(Frame):
     
@@ -17,52 +31,221 @@ class Sign_In_Page(Frame):
         
         Frame.__init__(self, master)
         self.master = master
-        
+        self.trade_window_setup()
         self.log_in_window()
         
+    def save_sp500_dict(self):
+        resp = requests.get('http://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+        soup = bs.BeautifulSoup(resp.text, 'lxml')
+        table = soup.find('table', {'class': 'wikitable sortable'})
+        tickers = []
+        names= []
+        for row in table.findAll('tr')[1:]:
+            ticker = row.findAll('td')[0].text
+            tickers.append(ticker)
+            names.append(row.findAll('td')[1].text)
+        for i in range(len(tickers)):
+            tickers[i] = tickers[i].strip()
+        self.sp500_dictionary =  dict(zip(tickers,names))
+        
+            
         
     def log_in_window(self):
-        self.master.title("Cory's Trading App")
-        self.configure(background = "#2C3531")
-        screen_width = self.master.winfo_screenwidth()
-        screen_height = self.master.winfo_screenheight()
-        height = screen_height//2
-        width = screen_width//3
-        x = (screen_width//2) - (width//2)
-        y = (screen_height//2) - (height//2)
-        self.master.geometry(str(width) +  'x' + str(height) + '+' + str(x) + '+' +str(y))
+        self.sign_in = Toplevel()
+        self.sign_in.title("Sign-In")
+        self.sign_in.configure(background = "#303030")
+        self.screen_width = self.sign_in.winfo_screenwidth()
+        self.screen_height = self.sign_in.winfo_screenheight()
+        height = 500
+        width = 450
+        x = (self.screen_width//2) - (width//2)
+        y = (self.screen_height//2) - (height//2)
+        self.sign_in.geometry(str(width) +  'x' + str(height) + '+' + str(x) + '+' +str(y))
         self.pack(fill = BOTH, expand = 1)
-        Instruction_Font = font.Font(family = "Gilroy-Medium", size = 40, weight = 'bold')
-        Log_In = Button(self , text = "Log In", command = self.log_in, bg = "blue")
+        Instruction_Font = font.Font(family = "Gilroy-Medium", size = 40)
+        Label_Font = font.Font(family = "Gilroy-Medium", size = 20)
+        Log_In = Button(self.sign_in , text = "Log In" , borderless=1, command = self.log_in)
         Log_In.place(relx = .5, rely = .60, anchor = CENTER, relheight = .075, relwidth = .25)
-        API_Key_Label = Label(self, text="API Key ID:", bg = "#2C3531" , fg = "#D1E8E2").place(relx = .05, rely = .30 )
-        Secret_Key_Label = Label(self, text="Secret Key:", bg = "#2C3531", fg = "#D1E8E2").place(relx = .05, rely = .40 )
-        Water_MArk_Label = Label(self, text = "Produced By Cory Hunter", bg = "#2C3531", fg = "#FFCB9A").place(relx = .995, rely = .995,anchor = SE)
-        Instructions = Label(self, text = "Log In Using Alpaca Keys", bg = "#2C3531", fg = "#116466", font = Instruction_Font).place(relx = .5, rely = .15,anchor = CENTER)
+        Go_To_Alpaca = Button(self.sign_in , text = "Go to Alpaca", borderless=1, bg = '#FFD700', command = self.go_to_website)
+        Go_To_Alpaca.place(relx = .5, rely = .73, anchor = CENTER, relheight = .075, relwidth = .25)
+        API_Key_Label = Label(self.sign_in, text="API Key ID:", bg = "#303030" , fg = "#D1E8E2", font = Label_Font).place(relx = .05, rely = .30 )
+        Secret_Key_Label = Label(self.sign_in, text="Secret Key:", bg = "#303030", fg = "#D1E8E2", font = Label_Font).place(relx = .05, rely = .40 )
+        Water_Mark_Label = Label(self.sign_in, text = "Produced By Cory Hunter", bg = "#303030", fg = '#FFD700').place(relx = .995, rely = .995,anchor = SE)
+        Instructions = Label(self.sign_in, text = "Log In Using Alpaca Keys", bg = "#303030", fg = 'white', font = Instruction_Font).place(relx = .5, rely = .15,anchor = CENTER)
 
-        self.API_Key_Entry = Entry(self)
-        self.Secret_Key_Entry = Entry(self)
+        self.API_Key_Entry = Entry(self.sign_in, borderwidth = 0.5, relief = SUNKEN)
+        self.Secret_Key_Entry = Entry(self.sign_in, borderwidth = 0.5, relief = SUNKEN)
     
         self.API_Key_Entry.place(relx = .35, rely = .30, relheight = .07, relwidth = .45)
         self.Secret_Key_Entry.place(relx = .35, rely = .40, relheight = .07, relwidth = .45)
-
+        
+        self.sign_in.attributes("-topmost", True)
+        
+        
+    def trade_window_setup(self):
+        self.save_sp500_dict()
+        self.master.title("Cory's Trading App")
+        self.configure(background = "#303030")
+        screen_width = self.master.winfo_screenwidth()
+        screen_height = self.master.winfo_screenheight()
+        self.master.geometry(str(screen_width) +  'x' + str(screen_height) + '+0+0')
+        Header_Font = font.Font(family = "Gilroy-Medium", size = 60)
+        Header = Label(self, text = "Trading Platform", bg = "#303030", fg= "white", font = Header_Font)
+        Header.place(relx = .5, rely = .01, anchor = N)
+        Water_Mark_Label_Trade_Window = Label(self, text = "Produced By Cory Hunter", bg = "#303030", fg = '#FFD700').place(relx = .995, rely = .995,anchor = SE)
+        
         
     def log_in(self):
-        self.API_Key = self.API_Key_Entry.get()
-        self.Secret_Key = self.Secret_Key_Entry.get()
-        
-        try: 
-            self.api = alpaca.REST(self.API_Key, self.Secret_Key, base_url = 'https://paper-api.alpaca.markets')
-            self.account = self.api.get_account()
-            self.root.destroy 
-            
+        #self.API_Key = self.API_Key_Entry.get()
+        self.API_Key = 'PKWEFFDNBTRCEXLVYLPG'
+        #self.Secret_Key = self.Secret_Key_Entry.get()
+        self.Secret_Key = 'X8tPH2hCXCLQcbaykIS/MsrjJxFTHH1EkwuIKF/L'
+
+        #try:
+        self.api = alpaca.REST(self.API_Key, self.Secret_Key, base_url = 'https://paper-api.alpaca.markets')
+        self.account = self.api.get_account()
+        self.finish_trade_window_setup()
+        self.sign_in.destroy()
+       
+        """
         except: 
             print("Failed Log In")
             self.log_in_failed()
+        """
+            
+    def get_company_from_ticker(self,ticker):
+        try:
+            return self.sp500_dictionary[ticker]
+        except: 
+            return ticker
+            
+        
+    def go_to_website(self):
+        webbrowser.open('https://alpaca.markets/')
+        
+    def go_to_website_and_close(self):
+        
+        webbrowser.open('https://alpaca.markets/')
+        self.sign_in_error.destroy()
+        
             
     def log_in_failed(self):
-        self.log_in_window()
-        messagebox.showerror("Invalid Sign-In", "Make Sure Your Keys Correct and Try Again")
+        self.sign_in_error = Toplevel()
+        self.sign_in_error.title("Error")
+        self.sign_in_error.configure(background = "#303030")
+        center_x = (self.screen_width//2) - 150
+        center_y = (self.screen_height//2) - 75
+        self.sign_in_error.geometry('300x150+'+ str(center_x) + '+' +str(center_y))
+        Header_Font = font.Font(family = "Gilroy-Medium", size = 15)
+        Header = Label(self.sign_in_error, text = "Invalid keys, please use valid Alpaca Keys.", bg = "#303030", fg= "white", font = Header_Font)
+        Closer_Error = Button(self.sign_in_error , text = "Close", borderless=1, command = self.sign_in_error.destroy)
+        Closer_Error.place(relx = .35, rely = .85, anchor = CENTER)
+        Open_Alpaca = Button(self.sign_in_error , text = "Go To Alpaca", borderless=1, command = self.go_to_website_and_close)
+        Open_Alpaca.place(relx = .65, rely = .85, anchor = CENTER)
+        Header.place(relx = .5, rely = .35, anchor = N)
+        self.sign_in_error.attributes("-topmost", True)
+        
+    def portfolio_graph(self):
+        figure = plt.Figure(figsize=(6,5), dpi=100,facecolor='white',linewidth = 5, edgecolor='black')
+        self.portfolio_history = self.api.get_portfolio_history(timeframe= self.timeframe,period = self.period).df
+        self.portfolio_history.index = [dt.strptime(x.__str__()[11:19], '%H:%M:%S').time() for x in self.portfolio_history.index]
+        const = self.api.get_portfolio_history(timeframe="1D",period ="1W").df.equity.iloc[-2]
+        self.portfolio_history['Yesterdays_Close'] = pd.Series([const for x in range(len(self.portfolio_history.index))], index=self.portfolio_history.index)
+        ax = figure.add_subplot(111)
+        chart_type = FigureCanvasTkAgg(figure, self)
+        chart_type.get_tk_widget().place(relx = .25 ,rely = .550, anchor = S, relwidth = .40, relheight = .45)
+        plot = self.portfolio_history.equity.plot( kind='line', legend=True, ax=ax)
+        plot.set_facecolor('white')
+        plot.spines['top'].set_visible(False)
+        plot.spines['right'].set_visible(False)
+        self.portfolio_history.Yesterdays_Close.plot(kind='line', legend=True, ax=ax)
+        ax.ticklabel_format(axis = 'y', style = 'plain',useOffset=False)
+        ax.set_title('Your Portfolio')
+        
+        
+    def position_box_update(self):
+        
+        self.Position_Font = font.Font(family = "Menlo", size = 20)
+        self.position_box = Listbox(self, bg = "white", fg = "#303030", font = self.Position_Font, borderwidth = 5)
+        self.scroll_positions = Scrollbar(self.position_box, orient = VERTICAL)
+        self.position_box.config(yscrollcommand = self.scroll_positions.set)
+        self.positions = self.api.list_positions()
+        self.position_box.place(relx = .5 ,rely = .96, anchor = S, relwidth = .95, relheight = .20)
+        labels = " Company"
+        while (len(labels) < 28):
+            labels = labels + " "
+        labels = labels + "Ticker"
+        while (len(labels) < 45):
+            labels = labels + " "
+        labels = labels + "Quantity"
+        while (len(labels) < 60):
+            labels = labels + " " 
+        labels = labels + "Avg. Price"
+        while (len(labels) < 80):
+            labels = labels + " "
+        labels = labels + "Current Price"
+        while (len(labels) < 100):
+            labels = labels + " "
+        labels = labels + "Equity"
+        self.Position_Labels = Label(self, text = labels, bg = '#303030' , fg = "white",  font = self.Position_Font)
+        self.Position_Labels.place(relx = .47, rely = .755, anchor = S)
+        for i in range(len(self.positions)):
+            temp = " " + self.get_company_from_ticker(self.positions[i].symbol)
+            if (len(temp) > 25):
+                temp = temp[:22] + "...   "
+            else:
+                while (len(temp) < 28):
+                       temp = temp + " "
+            temp = temp + self.positions[i].symbol
+            while (len(temp) < 45):
+                temp = temp + " "
+            temp = temp + self.positions[i].qty
+            while (len(temp) < 60):
+                temp = temp + " " 
+            temp = temp + self.positions[i].avg_entry_price
+            while (len(temp) < 80):
+                temp = temp + " "
+            temp = temp + self.positions[i].current_price
+            while (len(temp) < 100):
+                temp = temp + " "
+            temp = temp + self.positions[i].market_value
+            self.position_box.insert(i,temp)
+            if (float(self.positions[i].current_price)>float(self.positions[i].avg_entry_price)):
+                self.position_box.itemconfig(i,fg = "green")
+            elif (float(self.positions[i].current_price) == float(self.positions[i].avg_entry_price)):
+                pass
+            else:
+                self.position_box.itemconfig(i,fg = "red") 
+        
+        self.scroll_positions.config(command = self.position_box.yview)
+        
+        self.scroll_positions.pack(side = RIGHT, fill = Y)
+        
+        
+    def finish_trade_window_setup(self):
+        self.position_box_update()  
+        self.timeframe = "1Min"
+        self.period = "1D"
+        self.portfolio_graph()
+        symbols = [position.symbol for position in self.positions]
+        symbols.insert(0,"Entire Portfolio")
+        self.reporting_options = ttk.Combobox(self, width = 15, values = symbols)
+        self.reporting_options.place(relx = .35, rely = .59, anchor = CENTER)
+        self.timeframe_options = ttk.Combobox(self, width = 15, values = ['Today','1 Week', '1 Month','3 Months', '1 Year', 'Total'])
+        self.timeframe_options.place(relx = .35, rely = .635, anchor = CENTER)
+        self.period_options = ttk.Combobox(self, width = 15, values = ['1 Minute','5 Minute','15 Minute', '1 Day'])
+        self.period_options.place(relx = .35, rely = .68, anchor = CENTER)
+        self.refresh_graph = Button(self , text = "Refresh Graph" , borderless=1, command = self.portfolio_graph)
+        self.refresh_positions = Button(self , text = "Refresh Positions" , borderless=1, command = self.position_box_update)
+        self.refresh_graph.place(relx = .12, rely = .60, anchor = CENTER, relheight = .05, relwidth = .1)
+        self.refresh_positions.place(relx = .12, rely = .67, anchor = CENTER, relheight = .05, relwidth = .1)
+        self.Asset_Option = Label(self, text = "Asset:", bg = '#303030' , fg = "white",  font = self.Position_Font)
+        self.Asset_Option.place(relx = .28, rely = .59, anchor = E)
+        self.Timeframe_Option = Label(self, text = "TimeFrame:", bg = '#303030' , fg = "white",  font = self.Position_Font)
+        self.Timeframe_Option.place(relx = .28, rely = .635, anchor = E)
+        self.Period_Option = Label(self, text = "Period:", bg = '#303030' , fg = "white",  font = self.Position_Font)
+        self.Period_Option.place(relx = .28, rely = .68, anchor = E)
+        
         
 def run_app():
     root = Tk()
