@@ -19,6 +19,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 from datetime import datetime as dt
 from tkinter import ttk
+import yfinance as yf
 
 
 
@@ -145,22 +146,52 @@ class Sign_In_Page(Frame):
         Header.place(relx = .5, rely = .35, anchor = N)
         self.sign_in_error.attributes("-topmost", True)
         
+    def graph_error(self):
+        self.graph_error_box = Toplevel()
+        self.graph_error_box.title("Error")
+        self.graph_error_box.configure(background = "#303030")
+        center_x = (self.screen_width//2) - 200
+        center_y = (self.screen_height//2) - 100
+        self.graph_error_box.geometry('400x200+'+ str(center_x) + '+' +str(center_y))
+        Header_Font = font.Font(family = "Gilroy-Medium", size = 15)
+        Header = Label(self.graph_error_box, text = self.graph_error_message, bg = "#303030", fg= "white", font = Header_Font)
+        Closer_Error = Button(self.graph_error_box , text = "Close", borderless=1, command = self.graph_error_box.destroy)
+        Closer_Error.place(relx = .5, rely = .85, anchor = CENTER)
+        Header.place(relx = .5, rely = .35, anchor = N)
+        self.graph_error_box.attributes("-topmost", True)
+        
     def portfolio_graph(self):
         figure = plt.Figure(figsize=(6,5), dpi=100,facecolor='white',linewidth = 5, edgecolor='black')
-        self.portfolio_history = self.api.get_portfolio_history(timeframe= self.timeframe,period = self.period).df
-        self.portfolio_history.index = [dt.strptime(x.__str__()[11:19], '%H:%M:%S').time() for x in self.portfolio_history.index]
-        const = self.api.get_portfolio_history(timeframe="1D",period ="1W").df.equity.iloc[-2]
-        self.portfolio_history['Yesterdays_Close'] = pd.Series([const for x in range(len(self.portfolio_history.index))], index=self.portfolio_history.index)
+        if self.asset_to_graph == "Entire Portfolio":
+            self.asset_history = self.api.get_portfolio_history(timeframe= self.timeframe,period = self.period).df
+        else: 
+            self.asset_history = pd.DataFrame(yf.download(self.asset_to_graph, period = self.period, interval = self.timeframe))
+        if self.timeframe[1] == 'M':
+            self.asset_history.index = [dt.strptime(x.__str__()[11:19], '%H:%M:%S').time() for x in self.asset_history.index] 
+        if self.period == '1D':
+            const = self.api.get_portfolio_history(timeframe="1D",period ="1W").df.equity.iloc[-2]
+            self.asset_history['Yesterdays_Close'] = pd.Series([const for x in range(len(self.asset_history.index))], index=self.asset_history.index)
         ax = figure.add_subplot(111)
         chart_type = FigureCanvasTkAgg(figure, self)
-        chart_type.get_tk_widget().place(relx = .25 ,rely = .550, anchor = S, relwidth = .40, relheight = .45)
-        plot = self.portfolio_history.equity.plot( kind='line', legend=True, ax=ax)
+        chart_type.get_tk_widget().place(relx = .25 ,rely = .560, anchor = S, relwidth = .40, relheight = .46)
+        if self.asset_to_graph == "Entire Portfolio":
+            plot = self.asset_history.equity.plot( kind='line', legend=True, ax=ax)
+        else:
+            print("Slot 1")
+            plot = self.asset_history.Close.plot(kind = 'line', legend = self.asset_to_graph, ax = ax)
         plot.set_facecolor('white')
         plot.spines['top'].set_visible(False)
         plot.spines['right'].set_visible(False)
-        self.portfolio_history.Yesterdays_Close.plot(kind='line', legend=True, ax=ax)
+        if self.period == '1D':
+            self.asset_history.Yesterdays_Close.plot(kind='line', legend=True, ax=ax)
         ax.ticklabel_format(axis = 'y', style = 'plain',useOffset=False)
-        ax.set_title('Your Portfolio')
+        ax.set_ylabel("USD")
+        if self.asset_to_graph == "Entire Portfolio":
+            ax.set_title(self.asset_to_graph)
+            ax.legend(["Equity"])
+        else:
+            ax.set_title(self.get_company_from_ticker(self.asset_to_graph))
+            ax.legend(["Price Per Share"])
         
         
     def position_box_update(self):
@@ -221,21 +252,70 @@ class Sign_In_Page(Frame):
         
         self.scroll_positions.pack(side = RIGHT, fill = Y)
         
+    def refresh_graph(self):
+        temp_bool = True
+        self.asset_to_graph = self.asset_option.get()
+        if self.asset_to_graph == "Entire Portfolio":
+            self.timeframe = self.timeframe_option.get()
+            if self.timeframe == "1 Minute":
+                self.timeframe = "1Min"
+            elif self.timeframe == "5 Minute":
+                self.timeframe = "5Min"
+            elif self.timeframe == "15 Minute":
+                self.timeframe = "15Min"
+            else:
+                self.timeframe = "1D"   
+            self.period = self.period_option.get()
+            if self.period == 'Today':
+                self.period = "1D"
+            elif self.period == '1 Week':
+                self.period = "1W"
+            elif self.period == '1 Month':
+                self.period = "1M"
+            elif self.period == '3 Months':
+                self.period = "3M"
+        else:
+            self.timeframe = self.timeframe_option.get()
+            if self.timeframe == "1 Minute":
+                self.timeframe = "1m"
+            elif self.timeframe == "5 Minute":
+                self.timeframe = "5m"
+            elif self.timeframe == "15 Minute":
+                self.timeframe = "15m"
+            else:
+                self.timeframe = "1d"   
+            self.period = self.period_option.get()
+            if self.period == 'Today':
+                self.period = "1d"
+            elif self.period == '1 Week':
+                self.period = "7d"
+            elif self.period == '1 Month':
+                self.period = "1mo"
+            elif self.period == '3 Months':
+                self.period = "3mo"
+        if self.timeframe != ("1D" and "1d"):
+            if self.period != ("1D" and "1d"):
+                self.graph_error_message = self.timeframe_option.get() + " must be used with period \"Today\"" 
+                self.graph_error()
+                temp_bool = False
+        if self.timeframe == ("1D" and "1d"):
+            if self.period == ("1D" and "1d"):
+                self.graph_error_message = self.timeframe_option.get() + " can\'t be used with period \"Today\"" 
+                self.graph_error()
+                temp_bool = False
+        if temp_bool:
+            self.portfolio_graph()
         
-    def finish_trade_window_setup(self):
-        self.position_box_update()  
-        self.timeframe = "1Min"
-        self.period = "1D"
-        self.portfolio_graph()
+    def insert_graph_options(self):
         symbols = [position.symbol for position in self.positions]
         symbols.insert(0,"Entire Portfolio")
-        self.reporting_options = ttk.Combobox(self, width = 15, values = symbols)
-        self.reporting_options.place(relx = .35, rely = .59, anchor = CENTER)
-        self.timeframe_options = ttk.Combobox(self, width = 15, values = ['Today','1 Week', '1 Month','3 Months', '1 Year', 'Total'])
-        self.timeframe_options.place(relx = .35, rely = .635, anchor = CENTER)
-        self.period_options = ttk.Combobox(self, width = 15, values = ['1 Minute','5 Minute','15 Minute', '1 Day'])
-        self.period_options.place(relx = .35, rely = .68, anchor = CENTER)
-        self.refresh_graph = Button(self , text = "Refresh Graph" , borderless=1, command = self.portfolio_graph)
+        self.asset_option = ttk.Combobox(self, width = 15, values = symbols)
+        self.asset_option.place(relx = .35, rely = .59, anchor = CENTER)
+        self.timeframe_option = ttk.Combobox(self, width = 15, values = ['1 Minute','5 Minute','15 Minute', '1 Day'])
+        self.timeframe_option.place(relx = .35, rely = .635, anchor = CENTER)
+        self.period_option = ttk.Combobox(self, width = 15, values = ['Today','1 Week', '1 Month','3 Months'])
+        self.period_option.place(relx = .35, rely = .68, anchor = CENTER)
+        self.refresh_graph = Button(self , text = "Refresh Graph" , borderless=1, command = self.refresh_graph)
         self.refresh_positions = Button(self , text = "Refresh Positions" , borderless=1, command = self.position_box_update)
         self.refresh_graph.place(relx = .12, rely = .60, anchor = CENTER, relheight = .05, relwidth = .1)
         self.refresh_positions.place(relx = .12, rely = .67, anchor = CENTER, relheight = .05, relwidth = .1)
@@ -245,6 +325,16 @@ class Sign_In_Page(Frame):
         self.Timeframe_Option.place(relx = .28, rely = .635, anchor = E)
         self.Period_Option = Label(self, text = "Period:", bg = '#303030' , fg = "white",  font = self.Position_Font)
         self.Period_Option.place(relx = .28, rely = .68, anchor = E)
+        
+        
+    def finish_trade_window_setup(self):
+        self.position_box_update()  
+        self.timeframe = "1Min"
+        self.period = "1D"
+        self.asset_to_graph = "Entire Portfolio"
+        self.portfolio_graph()
+        self.insert_graph_options()
+        
         
         
 def run_app():
