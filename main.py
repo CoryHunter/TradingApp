@@ -20,6 +20,7 @@ import pandas as pd
 from datetime import datetime as dt
 from tkinter import ttk
 import yfinance as yf
+import random as rand
 
 
 
@@ -92,7 +93,7 @@ class Sign_In_Page(Frame):
         self.master.geometry(str(screen_width) +  'x' + str(screen_height) + '+0+0')
         Header_Font = font.Font(family = "Gilroy-Medium", size = 60)
         Header = Label(self, text = "Trading Platform", bg = "#303030", fg= "white", font = Header_Font)
-        Header.place(relx = .5, rely = .01, anchor = N)
+        Header.place(relx = .5, rely = .00001, anchor = N)
         Water_Mark_Label_Trade_Window = Label(self, text = "Produced By Cory Hunter", bg = "#303030", fg = '#FFD700').place(relx = .995, rely = .995,anchor = SE)
         
         
@@ -326,6 +327,42 @@ class Sign_In_Page(Frame):
         self.Period_Option = Label(self, text = "Period:", bg = '#303030' , fg = "white",  font = self.Position_Font)
         self.Period_Option.place(relx = .28, rely = .68, anchor = E)
         
+    def start_new_strategy(self):
+        self.Testing_Label = Label(self, text = self.trading_option.get())
+        self.Testing_Label.place(relx = .75, rely = .35, anchor = CENTER)
+        
+    def init_trade_functions(self):
+        self.trading_option = ttk.Combobox(self, values = ["Moving Average Method","Upswing Method","Robinhood Notification Method", "Stop All Methods"])
+        self.trading_option.place(relx = .81, rely = .635, anchor = CENTER, relwidth = .25)
+        self.start_trading = Button(self, text = "Start Trading", borderless = 1, command = self.start_new_strategy)
+        self.start_trading.place(relx = .6, rely = .635, anchor = CENTER, relheight = .05, relwidth = .1)
+        self.trading_strategy_descriptions = Listbox(self, bg = "white", fg = "#303030", font = self.Position_Font, borderwidth = 3)
+        self.trading_strategy_descriptions.insert(1," MOVING AVERAGE METHOD: This method takes a")
+        self.trading_strategy_descriptions.insert(2," moving average and buys when the the moving")
+        self.trading_strategy_descriptions.insert(3," average is goes from above the current price")
+        self.trading_strategy_descriptions.insert(4," and then sells when it goes below the ")
+        self.trading_strategy_descriptions.insert(5," moving average.")
+        self.trading_strategy_descriptions.insert(6,"")
+        self.trading_strategy_descriptions.insert(7," UPSWING METHOD: This method looks for then")
+        self.trading_strategy_descriptions.insert(8," the stock price is going down and then")
+        self.trading_strategy_descriptions.insert(9," starts to swing back up. It will buy once")
+        self.trading_strategy_descriptions.insert(10," it starts to swing back up and then quickly ")
+        self.trading_strategy_descriptions.insert(11," sell to capture small but fast profits.")
+        self.trading_strategy_descriptions.insert(12," (COMMITS DAYTRADES)")
+        self.trading_strategy_descriptions.insert(13,"")
+        self.trading_strategy_descriptions.insert(14," ROBINHOOD METHOD: This method monitors")
+        self.trading_strategy_descriptions.insert(15," notifications given from Robinhood. It buys")
+        self.trading_strategy_descriptions.insert(16," when there is a notification loss of 5 or")
+        self.trading_strategy_descriptions.insert(17," more percent and sells at the end of the day.")
+        self.trading_strategy_descriptions.insert(18," (COMMITS DAYTRADES)")
+        self.trading_strategy_descriptions.insert(19,"")
+        self.trading_strategy_descriptions.insert(20,"")
+        self.trading_strategy_descriptions.place(relx = .75 ,rely = .560, anchor = S, relwidth = .40, relheight = .46)
+        self.scroll_strategies = Scrollbar(self.trading_strategy_descriptions, orient = VERTICAL)
+        self.trading_strategy_descriptions.config(yscrollcommand = self.scroll_strategies.set)
+        self.scroll_strategies.config(command = self.trading_strategy_descriptions.yview)
+        self.scroll_strategies.pack(side = RIGHT, fill = Y)
+        
         
     def finish_trade_window_setup(self):
         self.position_box_update()  
@@ -334,6 +371,7 @@ class Sign_In_Page(Frame):
         self.asset_to_graph = "Entire Portfolio"
         self.portfolio_graph()
         self.insert_graph_options()
+        self.init_trade_functions()
         
         
         
