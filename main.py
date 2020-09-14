@@ -98,22 +98,21 @@ class Sign_In_Page(Frame):
         
         
     def log_in(self):
-        #self.API_Key = self.API_Key_Entry.get()
-        self.API_Key = 'PKWEFFDNBTRCEXLVYLPG'
-        #self.Secret_Key = self.Secret_Key_Entry.get()
-        self.Secret_Key = 'X8tPH2hCXCLQcbaykIS/MsrjJxFTHH1EkwuIKF/L'
+        self.API_Key = self.API_Key_Entry.get()
+        self.Secret_Key = self.Secret_Key_Entry.get()
 
-        #try:
-        self.api = alpaca.REST(self.API_Key, self.Secret_Key, base_url = 'https://paper-api.alpaca.markets')
-        self.account = self.api.get_account()
-        self.finish_trade_window_setup()
-        self.sign_in.destroy()
+
+        try:
+            self.api = alpaca.REST(self.API_Key, self.Secret_Key, base_url = 'https://paper-api.alpaca.markets')
+            self.account = self.api.get_account()
+            self.finish_trade_window_setup()
+            self.sign_in.destroy()
        
-        """
+  
         except: 
             print("Failed Log In")
             self.log_in_failed()
-        """
+       
             
     def get_company_from_ticker(self,ticker):
         try:
@@ -178,7 +177,6 @@ class Sign_In_Page(Frame):
         if self.asset_to_graph == "Entire Portfolio":
             plot = self.asset_history.equity.plot( kind='line', legend=True, ax=ax)
         else:
-            print("Slot 1")
             plot = self.asset_history.Close.plot(kind = 'line', legend = self.asset_to_graph, ax = ax)
         plot.set_facecolor('white')
         plot.spines['top'].set_visible(False)
