@@ -10,7 +10,7 @@ from tkinter import *
 import webbrowser
 import alpaca_trade_api as alpaca
 from tkinter import font
-from tkmacosx import Button
+#from tkmacosx import Button
 import yfinance as yf
 import requests
 import bs4 as bs
@@ -66,9 +66,11 @@ class Sign_In_Page(Frame):
         self.pack(fill = BOTH, expand = 1)
         Instruction_Font = font.Font(family = "Gilroy-Medium", size = 40)
         Label_Font = font.Font(family = "Gilroy-Medium", size = 20)
-        Log_In = Button(self.sign_in , text = "Log In" , borderless=1, command = self.log_in)
+        #Log_In = Button(self.sign_in , text = "Log In" , borderless=1, command = self.log_in)
+        Log_In = Button(self.sign_in , text = "Log In" , command = self.log_in)
         Log_In.place(relx = .5, rely = .60, anchor = CENTER, relheight = .075, relwidth = .25)
-        Go_To_Alpaca = Button(self.sign_in , text = "Go to Alpaca", borderless=1, bg = '#FFD700', command = self.go_to_website)
+        #Go_To_Alpaca = Button(self.sign_in , text = "Go to Alpaca", borderless=1, bg = '#FFD700', command = self.go_to_website)
+        Go_To_Alpaca = Button(self.sign_in , text = "Go to Alpaca", bg = '#FFD700', command = self.go_to_website)
         Go_To_Alpaca.place(relx = .5, rely = .73, anchor = CENTER, relheight = .075, relwidth = .25)
         API_Key_Label = Label(self.sign_in, text="API Key ID:", bg = "#303030" , fg = "#D1E8E2", font = Label_Font).place(relx = .05, rely = .30 )
         Secret_Key_Label = Label(self.sign_in, text="Secret Key:", bg = "#303030", fg = "#D1E8E2", font = Label_Font).place(relx = .05, rely = .40 )
@@ -326,8 +328,30 @@ class Sign_In_Page(Frame):
         self.Period_Option.place(relx = .28, rely = .68, anchor = E)
         
     def start_new_strategy(self):
-        self.Testing_Label = Label(self, text = self.trading_option.get())
-        self.Testing_Label.place(relx = .75, rely = .35, anchor = CENTER)
+        self.strategy = self.trading_option.get()
+        if self.strategy == "Upswing Method":
+            self.strategy_average_bool = False
+            self.strategy_upswing_bool = True
+            self.strategy_robinhood_bool = False
+            while self.strategy_upswing_bool:
+                #TODO: import Method
+                break
+        elif self.strategy == "Moving Average Method":
+            self.strategy_average_bool = True
+            self.strategy_upswing_bool = False
+            self.strategy_robinhood_bool = False
+            while self.strategy_average_bool:
+                #TODO: import Method
+                break
+        elif self.strategy == "Robinhood Notification Method":
+            self.strategy_average_bool = False
+            self.strategy_upswing_bool = False
+            self.strategy_robinhood_bool = True
+            while self.strategy_robinhood_bool:
+                #TODO: import Method
+                break
+            
+            
         
     def init_trade_functions(self):
         self.trading_option = ttk.Combobox(self, values = ["Moving Average Method","Upswing Method","Robinhood Notification Method", "Stop All Methods"])
@@ -335,26 +359,9 @@ class Sign_In_Page(Frame):
         self.start_trading = Button(self, text = "Start Trading", borderless = 1, command = self.start_new_strategy)
         self.start_trading.place(relx = .6, rely = .635, anchor = CENTER, relheight = .05, relwidth = .1)
         self.trading_strategy_descriptions = Listbox(self, bg = "white", fg = "#303030", font = self.Position_Font, borderwidth = 3)
-        self.trading_strategy_descriptions.insert(1," MOVING AVERAGE METHOD: This method takes a")
-        self.trading_strategy_descriptions.insert(2," moving average and buys when the the moving")
-        self.trading_strategy_descriptions.insert(3," average is goes from above the current price")
-        self.trading_strategy_descriptions.insert(4," and then sells when it goes below the ")
-        self.trading_strategy_descriptions.insert(5," moving average.")
-        self.trading_strategy_descriptions.insert(6,"")
-        self.trading_strategy_descriptions.insert(7," UPSWING METHOD: This method looks for then")
-        self.trading_strategy_descriptions.insert(8," the stock price is going down and then")
-        self.trading_strategy_descriptions.insert(9," starts to swing back up. It will buy once")
-        self.trading_strategy_descriptions.insert(10," it starts to swing back up and then quickly ")
-        self.trading_strategy_descriptions.insert(11," sell to capture small but fast profits.")
-        self.trading_strategy_descriptions.insert(12," (COMMITS DAYTRADES)")
-        self.trading_strategy_descriptions.insert(13,"")
-        self.trading_strategy_descriptions.insert(14," ROBINHOOD METHOD: This method monitors")
-        self.trading_strategy_descriptions.insert(15," notifications given from Robinhood. It buys")
-        self.trading_strategy_descriptions.insert(16," when there is a notification loss of 5 or")
-        self.trading_strategy_descriptions.insert(17," more percent and sells at the end of the day.")
-        self.trading_strategy_descriptions.insert(18," (COMMITS DAYTRADES)")
-        self.trading_strategy_descriptions.insert(19,"")
-        self.trading_strategy_descriptions.insert(20,"")
+        definitions =  [" MOVING AVERAGE METHOD: This method takes a"," moving average and buys when the the moving"," average is goes from above the current price"," and then sells when it goes below the " ," moving average.",""," UPSWING METHOD: This method looks for then"," the stock price is going down and then" ," starts to swing back up. It will buy once"," it starts to swing back up and then quickly "," sell to capture small but fast profits."," (COMMITS DAYTRADES)",""," ROBINHOOD METHOD: This method monitors"," notifications given from Robinhood. It buys"," when there is a notification loss of 10 or"," more percent and sells at the end of the day."," (COMMITS DAYTRADES)" ,"",""]
+        for i in range(len(definitions)):
+            self.trading_strategy_descriptions.insert(i+1,definitions[i])
         self.trading_strategy_descriptions.place(relx = .75 ,rely = .560, anchor = S, relwidth = .40, relheight = .46)
         self.scroll_strategies = Scrollbar(self.trading_strategy_descriptions, orient = VERTICAL)
         self.trading_strategy_descriptions.config(yscrollcommand = self.scroll_strategies.set)
