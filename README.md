@@ -8,11 +8,13 @@ will bring up as sign in screen where you can enter your personalized keys.
 This is the sign in screen:
 
 ![Sign In](/README_IMG/sign_in.png)
-Format: ![Alt Text](url)
+
 
 This is what the trading platform looks like:
-![Sign In](/README_IMG/platform.png)
-Format: ![Alt Text](url)
+
+
+![Sign In](/README_IMG/Platform.png)
+
 
 ## TODO
 Import Upswing Method
