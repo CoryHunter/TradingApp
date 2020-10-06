@@ -1,5 +1,12 @@
 # TradingApp
 
+## App Design
+
+THis trading app is written in Python and designed by the process of Event Modeling using Onote.
+This is the event model that shows the framework for the app:
+
+![oNotes](/README_IMG/Trading_App_oNotes.png)
+
 ## Running the App
 The trading app is currently used at an interface to trade using Alpaca keys. In order
 to run the file load the file into ipython and run the function run_app(). The program
