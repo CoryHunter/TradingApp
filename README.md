@@ -2,7 +2,7 @@
 
 ## App Design
 
-THis trading app is written in Python and designed by the process of Event Modeling using Onote.
+THis trading app is written in Python and designed by the process of Event Modeling using oNote.
 This is the event model that shows the framework for the app:
 
 ![oNotes](/README_IMG/Trading_App_oNotes.png)
